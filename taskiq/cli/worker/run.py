@@ -41,7 +41,7 @@ async def shutdown_broker(broker: AsyncBroker, timeout: float) -> None:
     :param broker: current broker.
     :param timeout: maximum amount of time to shutdown the broker.
     """
-    logger.warning("Shutting down the broker.")
+    logger.info("Shutting down the broker.")
     try:
         ret_val = await asyncio.wait_for(broker.shutdown(), timeout)  # type: ignore
         if ret_val is not None:
@@ -165,6 +165,7 @@ def start_listen(args: WorkerArgs) -> None:
                 executor=pool,
                 validate_params=not args.no_parse,
                 max_async_tasks=args.max_async_tasks,
+                max_async_tasks_jitter=args.max_async_tasks_jitter,
                 max_prefetch=args.max_prefetch,
                 propagate_exceptions=not args.no_propagate_errors,
                 ack_type=args.ack_type,

@@ -29,7 +29,7 @@ from taskiq.message import BrokerMessage
 from taskiq.result_backends.dummy import DummyResultBackend
 from taskiq.serializers.json_serializer import JSONSerializer
 from taskiq.state import TaskiqState
-from taskiq.utils import maybe_awaitable, remove_suffix
+from taskiq.utils import maybe_awaitable
 from taskiq.warnings import TaskiqDeprecationWarning
 
 if sys.version_info >= (3, 11):
@@ -317,10 +317,9 @@ class AsyncBroker(ABC):
                     fmodule = func.__module__
                     if fmodule == "__main__":  # pragma: no cover
                         fmodule = ".".join(
-                            remove_suffix(
-                                os.path.normpath(sys.argv[0]),
-                                ".py",
-                            ).split(os.path.sep),
+                            os.path.normpath(sys.argv[0])
+                            .removesuffix(".py")
+                            .split(os.path.sep),
                         )
                     fname = func.__name__
                     if fname == "<lambda>":
@@ -534,3 +533,11 @@ class AsyncBroker(ABC):
         if task.broker != self:
             raise TaskBrokerMismatchError(broker=task.broker)
         self.local_task_registry[task_name] = task
+
+    async def __aenter__(self) -> None:
+        """Starts the broker as ctx manager."""
+        await self.startup()
+
+    async def __aexit__(self, *args: object, **kwargs: Any) -> None:
+        """Shuts down the broker as ctx manager."""
+        await self.shutdown()
